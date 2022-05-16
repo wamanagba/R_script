@@ -6,7 +6,7 @@ Data_Source="ARC2"
 setwd('C:/Users/Yacou/Desktop/ACMAD_Git')
 Stations<-rio::import("Synoptic_Station_All.csv")
 Station<-filter(Stations,Country=="Burkina")
-station= Station$Station[1]
+station= Station$Station[2]
 CounTry='Burkina'
 Data=rio::import(paste('Data/',Data_Source,"/",CounTry,'/',station,'.csv',sep=""))
 
@@ -17,6 +17,7 @@ Data$year = as.numeric(format(Data$Date,'%Y'))
 Data$Month=as.numeric(format(Data$Date,"%m"))
 #Data1$prcp[is.na(Data1$prcp)]=0
 Data= filter(Data,Month %in% A)
+Data=filter(Data,year==2000)
 #Data_Station<-filter(Data,Station==station)
 #Data_Station$year = as.numeric(format(Data_Station$Date,'%Y'))
 
