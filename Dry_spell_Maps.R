@@ -36,8 +36,17 @@ MaxLat=40
 
 ##############################Legend############################################
 ###Read Data########################
-Data<-rio::import(paste("Data/Dry_Spell_lengh_Max_1983_2010.csv",sep=""))
+Dat<-rio::import(paste("Data/Dry_Spell_lengh_Max_1983_2010.csv",sep=""))
+Data=Dat
+Data=Data%>%
+  group_by(X,Y)%>%
+  summarise(Mean2=mean(Mean))
 
+Data_2010=filter(Dat,Year==2010)
+anomaly=merge(Data,Data_2010,by=c("X","Y"))
+anomaly$Anomaly=anomaly$Mean2-anomaly$Mean
+colnames(anomaly)[6]="Mean";colnames(anomaly)[5]="Mean1"
+Data=anomaly
 Raster_file<-rasterFromXYZ(Data[c("X","Y","Mean")])
 
 Raster_file_1=disaggregate(Raster_file,8,method='bilinear')
@@ -46,7 +55,7 @@ rr = raster::mask(Raster_file_1 ,Africa)
 
 Data <- as.data.frame(rasterToPoints(rr ))
 #rio::export(Data,"Data/Annual_Total_Mean_1983_2021_CHIRPS.csv")
-mybreaks <- c(0,4,8,12,16,20,24,Inf)
+mybreaks <- c(-15,-10,-5,0,5,10,15,Inf)
 
 #Function to return the desired number of colors
 
@@ -58,7 +67,7 @@ mycolors<- function(x) {
 #Function to create labels for legend
 
 breaklabel <- function(x){
-  labels<-as.character(c(0,4,8,12,16,20,24))
+  labels<-as.character(c(-15,-10,-5,0,5,10,15))
   #labels<- as.character(seq(1,5))
   labels[1:x]
 }
@@ -80,7 +89,7 @@ last<-last+metR::scale_x_longitude(limits = c(MinLon,MaxLon),breaks =seq(MinLon,
 last<-last+labs(title = Title,x="",y="")
 dir.create(paste("Products/essais/Afrique/",sep=""),recursive = T,showWarnings = F)
 
-jpeg(filename = paste("Products/essais/Afrique/","MAX_Spell ","_",Data_Source,".jpeg",sep=""),
+jpeg(filename = paste("Products/essais/Afrique/","Anomly1_Spell ","_",Data_Source,".jpeg",sep=""),
      width = 14,
      height =14,
      units = "in",
