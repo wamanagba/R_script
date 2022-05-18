@@ -36,7 +36,7 @@ MaxLat=40
 
 ##############################Legend############################################
 ###Read Data########################
-Dat<-rio::import(paste("Data/Dry_Spell_lengh_Max_1983_2010.csv",sep=""))
+Dat<-rio::import(paste("Data/Dry_Spell_lengh_Max_10_1983_2010.csv",sep=""))
 Data=Dat
 Data=Data%>%
   group_by(X,Y)%>%
@@ -55,7 +55,7 @@ rr = raster::mask(Raster_file_1 ,Africa)
 
 Data <- as.data.frame(rasterToPoints(rr ))
 #rio::export(Data,"Data/Annual_Total_Mean_1983_2021_CHIRPS.csv")
-mybreaks <- c(-15,-10,-5,0,5,10,15,Inf)
+mybreaks <- c(-2,-1,5,0,1,2,Inf)
 
 #Function to return the desired number of colors
 
@@ -67,7 +67,7 @@ mycolors<- function(x) {
 #Function to create labels for legend
 
 breaklabel <- function(x){
-  labels<-as.character(c(-15,-10,-5,0,5,10,15))
+  labels<-as.character(c(-2,-1,0,1,2))
   #labels<- as.character(seq(1,5))
   labels[1:x]
 }
@@ -78,7 +78,7 @@ Title<-paste("Rainfall average yearly tatal Map over Nigeria","\nRef: 1983-2021"
 #Im<-grid::rasterGrob(png::readPNG("Logos/Acmad_logo_1.png"), interpolate = TRUE)
 
 l<-ggplot()+geom_contour_filled(data=Data, aes(x,y,z =Mean),breaks= mybreaks, show.legend = TRUE) +
-  scale_fill_manual(palette=mycolors, values=breaklabel(7), name="", drop=FALSE, guide = guide_legend(reverse = T))+theme_bw()
+  scale_fill_manual(palette=mycolors, values=breaklabel(6), name="", drop=FALSE, guide = guide_legend(reverse = T))+theme_bw()
 
 last<-l+geom_polygon(data = Africa, aes(x = long,y = lat, group = group), fill = NA,color = "black",size = 1.1)+ theme(legend.position = c(.04, .04),legend.justification = c("left", "bottom"),legend.box.just = "right",legend.margin = margin(6, 6, 6, 6),legend.text = element_text(size=20),plot.title = element_text(hjust = 0.5,size=25,face = "bold"),axis.text.x = element_text(size=15,face = "bold"),axis.text.y = element_text(size=15,face = "bold"))
 
@@ -89,7 +89,7 @@ last<-last+metR::scale_x_longitude(limits = c(MinLon,MaxLon),breaks =seq(MinLon,
 last<-last+labs(title = Title,x="",y="")
 dir.create(paste("Products/essais/Afrique/",sep=""),recursive = T,showWarnings = F)
 
-jpeg(filename = paste("Products/essais/Afrique/","Anomly1_Spell ","_",Data_Source,".jpeg",sep=""),
+jpeg(filename = paste("Products/essais/Afrique/","Anomly2_Spell ","_",Data_Source,".jpeg",sep=""),
      width = 14,
      height =14,
      units = "in",
