@@ -29,7 +29,7 @@ Year_Legend<-c("Mean","75% Mean","125% Mean",Analogues_Years)
 #########################Gives the path#########################################
 
 #Specify the working directory
-setwd("D:/Onset_Methods/")
+setwd("C:\\Users\\Yacou\\Desktop\\ACMAD_Git/")
 
 #The name of the folder where the data are stored
 Data_Folder="Data"
@@ -39,12 +39,12 @@ Data_Folder="Data"
 Profile_Folder="Western_Africa"
 
 #Data Source
-Source="CPC/Unified"
+Source="ARC2"
 
  
 #Giev the file that contains the Station list
-
-Station<-rio::import("Synoptic_Stations_January_Start.csv")
+Stations<-rio::import("Synoptic_Station_All.csv")
+#Station<-rio::import("Synoptic_Stations_January_Start.csv")
 
 
 ## Make sure that your Station list file contains at least the follwing column
