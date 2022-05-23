@@ -36,18 +36,21 @@ MaxLat=40
 
 ##############################Legend############################################
 ###Read Data########################
-Dat<-rio::import(paste("Data/Dry_Spell_lengh_Max_10_1983_2010.csv",sep=""))
+Dat<-rio::import(paste("Data/Dry_Spell_10Day_XY_1983_2010.csv",sep=""))
 Data=Dat
-Data=Data%>%
-  group_by(X,Y)%>%
-  summarise(Mean2=mean(Mean))
+# Data=Data%>%
+#   group_by(X,Y)%>%
+#   summarise(Mean2=mean(Mean))
 
-Data_2010=filter(Dat,Year==2010)
-anomaly=merge(Data,Data_2010,by=c("X","Y"))
-anomaly$Anomaly=anomaly$Mean2-anomaly$Mean
-colnames(anomaly)[6]="Mean";colnames(anomaly)[5]="Mean1"
-Data=anomaly
-Raster_file<-rasterFromXYZ(Data[c("X","Y","Mean")])
+# Data_2010=filter(Dat,Year==2010)
+# anomaly=merge(Data,Data_2010,by=c("X","Y"))
+# anomaly$Anomaly=anomaly$Mean2-anomaly$Mean
+# colnames(anomaly)[6]="Mean";colnames(anomaly)[5]="Mean1"
+# Data=anomaly
+Data=filter(Data,binary==1)
+
+
+Raster_file<-rasterFromXYZ(Data[c("X","Y","spell")])
 
 Raster_file_1=disaggregate(Raster_file,8,method='bilinear')
 
@@ -55,7 +58,7 @@ rr = raster::mask(Raster_file_1 ,Africa)
 
 Data <- as.data.frame(rasterToPoints(rr ))
 #rio::export(Data,"Data/Annual_Total_Mean_1983_2021_CHIRPS.csv")
-mybreaks <- c(-2,-1,5,0,1,2,Inf)
+mybreaks <- c(0,1,2,Inf)
 
 #Function to return the desired number of colors
 
@@ -67,29 +70,29 @@ mycolors<- function(x) {
 #Function to create labels for legend
 
 breaklabel <- function(x){
-  labels<-as.character(c(-2,-1,0,1,2))
+  labels<-as.character(c(0,1,2))
   #labels<- as.character(seq(1,5))
   labels[1:x]
 }
 ################################################################################
 
-Title<-paste("Rainfall average yearly tatal Map over Nigeria","\nRef: 1983-2021","\nData Source: ",Data_Source,sep="")
+Title<-paste("Average number of Dry spell over 10 days","\nRef: 1981-2010","\nData Source: ",Data_Source,"\n Season:JAS",sep="")
 
 #Im<-grid::rasterGrob(png::readPNG("Logos/Acmad_logo_1.png"), interpolate = TRUE)
 
-l<-ggplot()+geom_contour_filled(data=Data, aes(x,y,z =Mean),breaks= mybreaks, show.legend = TRUE) +
-  scale_fill_manual(palette=mycolors, values=breaklabel(6), name="", drop=FALSE, guide = guide_legend(reverse = T))+theme_bw()
+l<-ggplot()+geom_contour_filled(data=Data, aes(x,y,z =spell),breaks= mybreaks, show.legend = TRUE) +
+  scale_fill_manual(palette=mycolors, values=breaklabel(3), name="", drop=FALSE, guide = guide_legend(reverse = T))+theme_bw()
 
 last<-l+geom_polygon(data = Africa, aes(x = long,y = lat, group = group), fill = NA,color = "black",size = 1.1)+ theme(legend.position = c(.04, .04),legend.justification = c("left", "bottom"),legend.box.just = "right",legend.margin = margin(6, 6, 6, 6),legend.text = element_text(size=20),plot.title = element_text(hjust = 0.5,size=25,face = "bold"),axis.text.x = element_text(size=15,face = "bold"),axis.text.y = element_text(size=15,face = "bold"))
 
 #last<-last+  annotation_custom(Im, xmin = MaxLon-5, xmax = MaxLon, ymin =MaxLat-5, ymax = MaxLat) +coord_cartesian(clip = "off")
 
-last<-last+metR::scale_x_longitude(limits = c(MinLon,MaxLon),breaks =seq(MinLon,MaxLon,2.5))+scale_y_latitude(limits = c(MinLat,MaxLat),breaks =seq(MinLat,MaxLat,2.5))
+last<-last+metR::scale_x_longitude(limits = c(MinLon,MaxLon),breaks =seq(MinLon,MaxLon,5))+scale_y_latitude(limits = c(MinLat,MaxLat),breaks =seq(MinLat,MaxLat,5))
 
 last<-last+labs(title = Title,x="",y="")
 dir.create(paste("Products/essais/Afrique/",sep=""),recursive = T,showWarnings = F)
 
-jpeg(filename = paste("Products/essais/Afrique/","Anomly2_Spell ","_",Data_Source,".jpeg",sep=""),
+jpeg(filename = paste("Products/essais/Afrique/","10_Spell ","_",Data_Source,".jpeg",sep=""),
      width = 14,
      height =14,
      units = "in",

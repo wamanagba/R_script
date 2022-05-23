@@ -43,9 +43,9 @@ Source="ARC2"
 
  
 #Giev the file that contains the Station list
-Stations<-rio::import("Synoptic_Station_All.csv")
-#Station<-rio::import("Synoptic_Stations_January_Start.csv")
 
+Station<-rio::import("Synoptic_Station_All.csv")
+Station=filter(Station,Country=="Burkina")
 
 ## Make sure that your Station list file contains at least the follwing column
 ## Station  Country
@@ -61,6 +61,9 @@ Max_Cum<-c()
 
 nbelm=0 
 
+######
+
+####
 ################################################Don't need to modify anything here##################################
 for (i in 1:length(Station$Station)){
      print(paste(Station$Country[i],": ",Station$Station[i]))
@@ -70,16 +73,17 @@ for (i in 1:length(Station$Station)){
     #Make sure that the columns of your data contain the following at least
     #Station Date Precipitation
     #Data<-rio::import(file=paste(Data_Folder,"/",Station$Station[i],".csv",sep=""))
-     if(Station$Data_Source[i]=="CPC_Unified"){
-      Data<-rio::import(paste("CPC_Unified/",Station$Station[i],".csv",sep=""))
-        
-     }
-     if(Station$Data_Source[i]=="ARC2"){
-        
-       Data<-rio::import(paste("ARC2/Data/",Station$Station[i],".csv",sep=""))
-       
-      }
-     
+     # if(Station$Data_Source[i]=="CPC_Unified"){
+     #  Data<-rio::import(paste("CPC_Unified/",Station$Station[i],".csv",sep=""))
+     #    
+     # }
+     # if(Station$Data_Source[i]=="ARC2"){
+     #    
+     #   Data<-rio::import(paste("ARC2/Data/",Station$Station[i],".csv",sep=""))
+     #   
+     #  }
+     Data<-rio::import(file=paste(Data_Folder,"/",Source,"/",Station$Country[i],"/",Station$Station[i],".csv",sep=""))
+    
      Data<-Data %>% distinct(Date, .keep_all = TRUE)
      
      Last_Date<-Data$Date[length(Data$Date)]
@@ -137,7 +141,7 @@ for (i in 1:length(Station$Station)){
        
        if(Start_Cum>=0){
          Instat[1:Start_Cum,]=0
-         
+#Year=2012
          for (Year in Analogues_Years) {
            
              Cum_Year<-cumsum(na.fill(Instat[,as.character(Year)],0))
@@ -153,6 +157,7 @@ for (i in 1:length(Station$Station)){
              Max_Cum[length(Max_Cum)+1]<-max(Cum_Year)
          }
        }
+       
        #Current Year
        l<-length(seq(as.Date(paste(Cur_Year,"-01-01",sep="")),Last_Date,by="days"))
        Current_Year <- cumsum(na.fill(Instat[1:l+1,as.character(Cur_Year)],0))
@@ -238,6 +243,6 @@ for (i in 1:length(Station$Station)){
      }
 }
 
-dir.create("Onset",recursive = T,showWarnings = F)
+dir.create("Data/Onset",recursive = T,showWarnings = F)
 
-rio::export(Onset,paste("Onset/Onset_Date_CPC_UNIFIED_",gsub("-","",Sys.Date()),".csv",sep=""))
+rio::export(Onset,paste("Data/Onset/Onset_Date_ARC2_",gsub("-","",Sys.Date()),".csv",sep=""))
