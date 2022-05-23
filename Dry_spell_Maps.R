@@ -36,8 +36,20 @@ MaxLat=40
 
 ##############################Legend############################################
 ###Read Data########################
-Dat<-rio::import(paste("Data/Dry_Spell_10Day_XY_1983_2010.csv",sep=""))
+
+cpt=1
+# A=c(7,8.9)
+A=c("Jan", "Feb", "Mar", "Apr", "May", "Jun" ,"Jul", "Aug", "Sep" ,"Oct", "Nov", "Dec")
+for(cpt in 1:12){
+  cpt1=(cpt+1)%%12
+  if(cpt1==0) cpt1=12
+  cpt2=(cpt+2)%%12
+  if(cpt2==0) cpt2=12
+
+
+Dat<-rio::import(paste("Data/Dry_Speel_Data/Dry_Spell_10Day_1981_2010_",substr(A[cpt],1,1),substr(A[cpt1],1,1),substr(A[cpt2],1,1),".csv",sep = ""))
 Data=Dat
+season=paste(substr(A[cpt],1,1),substr(A[cpt1],1,1),substr(A[cpt2],1,1),".csv",sep = "")
 # Data=Data%>%
 #   group_by(X,Y)%>%
 #   summarise(Mean2=mean(Mean))
@@ -58,7 +70,7 @@ rr = raster::mask(Raster_file_1 ,Africa)
 
 Data <- as.data.frame(rasterToPoints(rr ))
 #rio::export(Data,"Data/Annual_Total_Mean_1983_2021_CHIRPS.csv")
-mybreaks <- c(0,1,2,Inf)
+mybreaks <- c(0,1,2,3,Inf)
 
 #Function to return the desired number of colors
 
@@ -70,18 +82,18 @@ mycolors<- function(x) {
 #Function to create labels for legend
 
 breaklabel <- function(x){
-  labels<-as.character(c(0,1,2))
+  labels<-as.character(c(0,1,2,3))
   #labels<- as.character(seq(1,5))
   labels[1:x]
 }
 ################################################################################
 
-Title<-paste("Average number of Dry spell over 10 days","\nRef: 1981-2010","\nData Source: ",Data_Source,"\n Season:JAS",sep="")
+Title<-paste("Average number of Dry spell over 10 days","\nRef: 1981-2010","\nData Source: ",Data_Source,"\n Season:",season,sep="")
 
 #Im<-grid::rasterGrob(png::readPNG("Logos/Acmad_logo_1.png"), interpolate = TRUE)
 
 l<-ggplot()+geom_contour_filled(data=Data, aes(x,y,z =spell),breaks= mybreaks, show.legend = TRUE) +
-  scale_fill_manual(palette=mycolors, values=breaklabel(3), name="", drop=FALSE, guide = guide_legend(reverse = T))+theme_bw()
+  scale_fill_manual(palette=mycolors, values=breaklabel(4), name="", drop=FALSE, guide = guide_legend(reverse = T))+theme_bw()
 
 last<-l+geom_polygon(data = Africa, aes(x = long,y = lat, group = group), fill = NA,color = "black",size = 1.1)+ theme(legend.position = c(.04, .04),legend.justification = c("left", "bottom"),legend.box.just = "right",legend.margin = margin(6, 6, 6, 6),legend.text = element_text(size=20),plot.title = element_text(hjust = 0.5,size=25,face = "bold"),axis.text.x = element_text(size=15,face = "bold"),axis.text.y = element_text(size=15,face = "bold"))
 
@@ -90,15 +102,15 @@ last<-l+geom_polygon(data = Africa, aes(x = long,y = lat, group = group), fill =
 last<-last+metR::scale_x_longitude(limits = c(MinLon,MaxLon),breaks =seq(MinLon,MaxLon,5))+scale_y_latitude(limits = c(MinLat,MaxLat),breaks =seq(MinLat,MaxLat,5))
 
 last<-last+labs(title = Title,x="",y="")
-dir.create(paste("Products/essais/Afrique/",sep=""),recursive = T,showWarnings = F)
+dir.create(paste("Products/Dry_speel/Afrique/",sep=""),recursive = T,showWarnings = F)
 
-jpeg(filename = paste("Products/essais/Afrique/","10_Spell ","_",Data_Source,".jpeg",sep=""),
+jpeg(filename = paste("Products/Dry_speel/Afrique/","10_Spell_",season,"_",Data_Source,".jpeg",sep=""),
      width = 14,
      height =14,
      units = "in",
      res=300)
 print(last)
 dev.off()
-
+}
 
 

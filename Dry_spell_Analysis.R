@@ -63,9 +63,9 @@ Data_Dry<-Data_Dry_Speel%>%
 
 Clima<-D1%>%
   group_by(X,Y)%>%
- summarise(clim=sum(prcp))
+ summarise(clim=mean(prcp))
 
-Clima$binary= ifelse(Clima$clim>100,1,0)
+Clima$binary= ifelse(Clima$clim>1,1,0)
 
 Data_final=merge(Clima,Data_Dry,by=c("X","Y"))
 Data_final$spell=Data_final$binary*Data_final$Mean
@@ -73,4 +73,7 @@ Data_final$spell=Data_final$binary*Data_final$Mean
 dir.create(paste("Data/Dry_Speel_Data/",sep = ""),recursive = T, showWarnings = F)
 #rio::export(Data_Dry,"Data/Dry_Spell_10Day_1983_2010.csv")
 rio::export(Data_final,paste("Data/Dry_Speel_Data/Dry_Spell_10Day_1981_2010_",substr(A[cpt],1,1),substr(A[cpt1],1,1),substr(A[cpt2],1,1),".csv",sep = ""))
+season=paste(substr(A[cpt],1,1),substr(A[cpt1],1,1),substr(A[cpt2],1,1),sep = "")
+dir.create(paste("Data/Dry_Speel_Data/All/",sep = ""),recursive = T, showWarnings = F)
+rio::export(Data_Dry_Speel,paste("Data/Dry_Speel_Data/All/Data_Dry_Speel_",season,".csv",sep=""))
 }
