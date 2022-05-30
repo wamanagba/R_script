@@ -1,31 +1,55 @@
-library(rio)
-library(dplyr)
-library(ggplot2)
-library(rio)
-library(dplyr)
 library(ncdf4)
-library(RColorBrewer)
+library(dplyr)
+library(rio)
+library(ggplot2)
 library(metR)
-library(ggplot2)
 library(rgdal)
-library(ggplot2)
-library(tidyverse)
-library(raster)
-library(sp)
-library(ggdark)
-library(showtext)
-library(ggrepel)
-library(Hmisc)
 rm(list = ls())
 
-options(download.file.extra = '--no-check-certificate')
-options(timeout=600)
-options(warn=-1)
-rm(list=ls())
-#Climatology
-#https://iridl.ldeo.columbia.edu/SOURCES/.NOAA/.NCEP/.CPC/.UNIFIED_PRCP/.GAUGE_BASED/.GLOBAL/.v1p0/.Monthly/.extREALTIME/.rain/T/(Jan%202021)/(Sep%202021)/RANGEEDGES/Y/-40/0.5/40/GRID/X/55/0.5/-25/GRID/T/9/runningAverage/270/mul/ngridtable+table-+skipanyNaN+3+-table+.html
-#############################################################################################################################################################################
 setwd("C:/Users/Yacou/Desktop/ACMAD_Git/")
+
+k=1981
+for (k in 1981:1982) {
+  print(k)
+  if(k==1981){
+    Data<-rio::import(paste("Data/CPC-UNIFIED/CSV_Format/",k,".csv",sep=""))
+
+    Data$Year<-format(Data$T,"%Y")
+    Data$Month<-as.numeric(format(Data$T,"%b"))
+
+    Data=filter(Data,Month %in% c("Jan","Feb","Mar"))
+    Data_Cum<-Data%>%
+      group_by(X,Y,Year)%>%
+      summarise(Cum=sum(rain,na.rm=T))
+    
+  }else{
+    Data1<-rio::import(paste("Data/CPC-UNIFIED/CSV_Format/",k,".csv",sep=""))
+    
+    Data1$Year<-format(Data1$T,"%Y")
+    Data1$Month<-format(Data1$T,"%b")
+    
+    Data1=filter(Data1,Month %in% c("Jan","Feb","Mar"))
+    Data_Cum1<-Data1%>%
+      group_by(X,Y,Year)%>%
+      summarise(Cum=sum(rain,na.rm=T))
+    
+    Data_Cum<-rbind( Data_Cum, Data_Cum1)
+  }
+}
+
+
+
+
+Annual_Total<-Data_Cum%>%
+  group_by(X,Y)%>%
+  summarise(Mean=mean(Cum,na.rm=T))
+
+#rio::export(Annual_Total,"Data/Annual_Total_Mean_JFM.csv")
+
+
+#################################################################
+
+########################### Maps ###############################
 
 Africa<-readOGR("SHP_AFRIQUE/Afrique_frontier_news.shp") 
 Data_Source="CHIRPS"
@@ -34,43 +58,15 @@ MaxLon=55
 MinLat=-40
 MaxLat=40
 
-##############################Legend############################################
-###Read Data########################
-
-cpt=1
-# A=c(7,8.9)
-A=c("Jan", "Feb", "Mar", "Apr", "May", "Jun" ,"Jul", "Aug", "Sep" ,"Oct", "Nov", "Dec")
-#for(cpt in 1:12){
-  cpt1=(cpt+1)%%12
-  if(cpt1==0) cpt1=12
-  cpt2=(cpt+2)%%12
-  if(cpt2==0) cpt2=12
 
 
-season=paste(substr(A[cpt],1,1),substr(A[cpt1],1,1),substr(A[cpt2],1,1),sep = "")
-Dat=rio::import("Data/Annual_Total_Mean_JFM.csv")
-#Dat=rio::import(paste("Data/Dry_Speel_Data/climatologie/clim_",season,".csv",sep=""))
-#Dat<-rio::import(paste("Data/Dry_Speel_Data/Dry_Spell_10Day_1981_2010_Yacou",season,".csv",sep = ""))
-Data=Dat
-# Data=Data%>%
-#   group_by(X,Y)%>%
-#   summarise(Mean2=mean(Mean))
-
-# Data_2010=filter(Dat,Year==2010)
-# anomaly=merge(Data,Data_2010,by=c("X","Y"))
-# anomaly$Anomaly=anomaly$Mean2-anomaly$Mean
-# colnames(anomaly)[6]="Mean";colnames(anomaly)[5]="Mean1"
-# Data=anomaly
-#Data=filter(Data,binary==1)
-#Data$clim= Data$clim*Data$binary
-
-Raster_file<-rasterFromXYZ(Data[c("X","Y","Mean")])
+Raster_file<-rasterFromXYZ(Annual_Total[c("X","Y","Mean")])
 
 Raster_file_1=disaggregate(Raster_file,8,method='bilinear')
 
 rr = raster::mask(Raster_file_1 ,Africa)
 
-Data <- as.data.frame(rasterToPoints(rr ))
+Annual_Total <- as.data.frame(rasterToPoints(rr ))
 #rio::export(Data,"Data/Annual_Total_Mean_1983_2021_CHIRPS.csv")
 mybreaks <- c(-Inf,100,400,600,1200,1500,Inf)
 
@@ -93,7 +89,7 @@ Title<-paste("Average number of Dry spell over 10 days")#","\nRef: 1981-2010","\
 
 #Im<-grid::rasterGrob(png::readPNG("Logos/Acmad_logo_1.png"), interpolate = TRUE)
 
-l<-ggplot()+geom_contour_filled(data=Data, aes(x,y,z =Mean),breaks= mybreaks, show.legend = TRUE) +
+l<-ggplot()+geom_contour_filled(data=Annual_Total, aes(x,y,z =Mean),breaks= mybreaks, show.legend = TRUE) +
   scale_fill_manual(palette=mycolors, values=breaklabel(6), name="", drop=FALSE, guide = guide_legend(reverse = T))+theme_bw()
 
 last<-l+geom_polygon(data = Africa, aes(x = long,y = lat, group = group), fill = NA,color = "black",size = 1.1)+ theme(legend.position = c(.04, .04),legend.justification = c("left", "bottom"),legend.box.just = "right",legend.margin = margin(6, 6, 6, 6),legend.text = element_text(size=20),plot.title = element_text(hjust = 0.5,size=25,face = "bold"),axis.text.x = element_text(size=15,face = "bold"),axis.text.y = element_text(size=15,face = "bold"))
@@ -112,6 +108,3 @@ jpeg(filename = paste("Products/climatologie/Afrique/","clim_23.jpeg",sep=""),
      res=300)
 print(last)
 dev.off()
-#}
-
-
