@@ -38,7 +38,7 @@ MaxLat=40
 ###Read Data########################
 
 cpt=1
-# A=c(7,8.9)
+A=c(7,8.9)
 A=c("Jan", "Feb", "Mar", "Apr", "May", "Jun" ,"Jul", "Aug", "Sep" ,"Oct", "Nov", "Dec")
 #for(cpt in 1:12){
   cpt1=(cpt+1)%%12
@@ -48,21 +48,13 @@ A=c("Jan", "Feb", "Mar", "Apr", "May", "Jun" ,"Jul", "Aug", "Sep" ,"Oct", "Nov",
 
 
 season=paste(substr(A[cpt],1,1),substr(A[cpt1],1,1),substr(A[cpt2],1,1),sep = "")
-Dat=rio::import("Data/Annual_Total_Mean_JFM.csv")
+Dat=rio::import(paste("Data/Dry_Speel_Data/Dry_Spell_10Day_2000_",season,".csv",sep = ""))
 #Dat=rio::import(paste("Data/Dry_Speel_Data/climatologie/clim_",season,".csv",sep=""))
 #Dat<-rio::import(paste("Data/Dry_Speel_Data/Dry_Spell_10Day_1981_2010_Yacou",season,".csv",sep = ""))
 Data=Dat
-# Data=Data%>%
-#   group_by(X,Y)%>%
-#   summarise(Mean2=mean(Mean))
 
-# Data_2010=filter(Dat,Year==2010)
-# anomaly=merge(Data,Data_2010,by=c("X","Y"))
-# anomaly$Anomaly=anomaly$Mean2-anomaly$Mean
-# colnames(anomaly)[6]="Mean";colnames(anomaly)[5]="Mean1"
-# Data=anomaly
-#Data=filter(Data,binary==1)
-#Data$clim= Data$clim*Data$binary
+Data=filter(Data,binary==1)
+
 
 Raster_file<-rasterFromXYZ(Data[c("X","Y","Mean")])
 
@@ -72,8 +64,8 @@ rr = raster::mask(Raster_file_1 ,Africa)
 
 Data <- as.data.frame(rasterToPoints(rr ))
 #rio::export(Data,"Data/Annual_Total_Mean_1983_2021_CHIRPS.csv")
-mybreaks <- c(-Inf,100,400,600,1200,1500,Inf)
-
+#mybreaks <- c(-Inf,100,400,600,1200,1500,Inf)
+mybreaks <- c(-Inf,1,2,3,4,5,Inf)
 #Function to return the desired number of colors
 
 mycolors<- function(x) {
@@ -105,7 +97,7 @@ last<-last+metR::scale_x_longitude(limits = c(MinLon,MaxLon),breaks =seq(MinLon,
 last<-last+labs(title = Title,x="",y="")
 dir.create(paste("Products/climatologie/Afrique/",sep=""),recursive = T,showWarnings = F)
 
-jpeg(filename = paste("Products/climatologie/Afrique/","clim_23.jpeg",sep=""),
+jpeg(filename = paste("Products/climatologie/Afrique/","dry.jpeg",sep=""),
      width = 14,
      height =14,
      units = "in",

@@ -7,9 +7,10 @@ library(rgdal)
 rm(list = ls())
 
 setwd("C:/Users/Yacou/Desktop/ACMAD_Git/")
+A=c("Jan", "Feb", "Mar", "Apr", "May", "Jun" ,"Jul", "Aug", "Sep" ,"Oct", "Nov", "Dec")
 
 k=1981
-for (k in 1981:1982) {
+for (k in 1981:2010) {
   print(k)
   if(k==1981){
     Data<-rio::import(paste("Data/CPC-UNIFIED/CSV_Format/",k,".csv",sep=""))
@@ -17,7 +18,7 @@ for (k in 1981:1982) {
     Data$Year<-format(Data$T,"%Y")
     Data$Month<-as.numeric(format(Data$T,"%b"))
 
-    Data=filter(Data,Month %in% c("Jan","Feb","Mar"))
+    Data=filter(Data,Month %in% c("Jan", "Feb", "Mar"))
     Data_Cum<-Data%>%
       group_by(X,Y,Year)%>%
       summarise(Cum=sum(rain,na.rm=T))
@@ -28,7 +29,7 @@ for (k in 1981:1982) {
     Data1$Year<-format(Data1$T,"%Y")
     Data1$Month<-format(Data1$T,"%b")
     
-    Data1=filter(Data1,Month %in% c("Jan","Feb","Mar"))
+    Data1=filter(Data1,Month %in% c("Jan", "Feb", "Mar"))
     Data_Cum1<-Data1%>%
       group_by(X,Y,Year)%>%
       summarise(Cum=sum(rain,na.rm=T))
@@ -85,7 +86,7 @@ breaklabel <- function(x){
 }
 ################################################################################
 
-Title<-paste("Average number of Dry spell over 10 days")#","\nRef: 1981-2010","\nData Source: ",Data_Source,"\n Season:",season,sep="")
+Title<-paste("Climatology")#","\nRef: 1981-2010","\nData Source: ",Data_Source,"\n Season:",season,sep="")
 
 #Im<-grid::rasterGrob(png::readPNG("Logos/Acmad_logo_1.png"), interpolate = TRUE)
 
