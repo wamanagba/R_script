@@ -9,36 +9,35 @@ rm(list = ls())
 setwd("C:/Users/Yacou/Desktop/ACMAD_Git/")
 A=c("Jan", "Feb", "Mar", "Apr", "May", "Jun" ,"Jul", "Aug", "Sep" ,"Oct", "Nov", "Dec")
 
-k=1981
+cpt=1
+for (cpt in 1:12) {
+  
+cpt1=(cpt+1)%%12
+if(cpt1==0) cpt1=12
+cpt2=(cpt+2)%%12
+if(cpt2==0) cpt2=12
+season=paste(substr(A[cpt],1,1),substr(A[cpt1],1,1),substr(A[cpt2],1,1),sep = "")
+
+
+Data_Cum=data.frame()
 for (k in 1981:2010) {
-  print(k)
-  if(k==1981){
+  
+    print(k);print(season)
     Data<-rio::import(paste("Data/CPC-UNIFIED/CSV_Format/",k,".csv",sep=""))
-
+    
     Data$Year<-format(Data$T,"%Y")
-    Data$Month<-as.numeric(format(Data$T,"%b"))
-
-    Data=filter(Data,Month %in% c("Jan", "Feb", "Mar"))
-    Data_Cum<-Data%>%
-      group_by(X,Y,Year)%>%
-      summarise(Cum=sum(rain,na.rm=T))
+    Data$Month<-format(Data$T,"%b")
     
-  }else{
-    Data1<-rio::import(paste("Data/CPC-UNIFIED/CSV_Format/",k,".csv",sep=""))
-    
-    Data1$Year<-format(Data1$T,"%Y")
-    Data1$Month<-format(Data1$T,"%b")
-    
-    Data1=filter(Data1,Month %in% c("Jan", "Feb", "Mar"))
-    Data_Cum1<-Data1%>%
+    Dat=Data
+    Data=filter(Data,Month %in% A[c(cpt,cpt1,cpt2)])
+    Data_Cum1<-Data%>%
       group_by(X,Y,Year)%>%
       summarise(Cum=sum(rain,na.rm=T))
     
     Data_Cum<-rbind( Data_Cum, Data_Cum1)
-  }
+    
+  
 }
-
-
 
 
 Annual_Total<-Data_Cum%>%
@@ -86,7 +85,7 @@ breaklabel <- function(x){
 }
 ################################################################################
 
-Title<-paste("Climatology")#","\nRef: 1981-2010","\nData Source: ",Data_Source,"\n Season:",season,sep="")
+Title<-paste("Climatology over Africa","\nRef: 1981-2010","\nData Source: ",Data_Source,"\n Season:",season,sep="")
 
 #Im<-grid::rasterGrob(png::readPNG("Logos/Acmad_logo_1.png"), interpolate = TRUE)
 
@@ -100,12 +99,15 @@ last<-l+geom_polygon(data = Africa, aes(x = long,y = lat, group = group), fill =
 last<-last+metR::scale_x_longitude(limits = c(MinLon,MaxLon),breaks =seq(MinLon,MaxLon,5))+scale_y_latitude(limits = c(MinLat,MaxLat),breaks =seq(MinLat,MaxLat,5))
 
 last<-last+labs(title = Title,x="",y="")
-dir.create(paste("Products/climatologie/Afrique/",sep=""),recursive = T,showWarnings = F)
+dir.create(paste("Products/Climatology/",sep=""),recursive = T,showWarnings = F)
 
-jpeg(filename = paste("Products/climatologie/Afrique/","clim_23.jpeg",sep=""),
+jpeg(filename = paste("Products/climatology/",season,".jpeg",sep=""),
      width = 14,
      height =14,
      units = "in",
      res=300)
 print(last)
 dev.off()
+
+
+}
