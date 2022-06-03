@@ -10,15 +10,16 @@ setwd('C:/Users/Yacou/Desktop/ACMAD_Git')
 Stations<-rio::import("Synoptic_Station_All.csv")
 
 # Importing the Niger stations
-CounTry= 'Niger'
+CounTry= 'Burkina'
 Niger_station= Station<-filter(Stations,Country==CounTry)
 
 i=1
 for (i in 1:length(Niger_station$Station)) {
   station= Niger_station$Station[i]
-  data=rio::import(paste('Data/',CounTry,'/',station,'.csv',sep=""))
+  data=rio::import(paste('Data/ARC2/',CounTry,'/',station,'.csv',sep=""))
   data$Precipitation= ifelse(data$Precipitation<2.5,0,1)
   data$Year = as.numeric(format(data$Date,'%Y'))
+  
   
   # Calculation of annual precipitation sum for each station
   Data_numberDay = data%>%
