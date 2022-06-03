@@ -17,7 +17,7 @@ MaxLat=40
 cpt=1
 
 
-
+for (cpt in c(1,4,7,10)) {
 
 cpt1=(cpt+1)%%12
 if(cpt1==0) cpt1=12
@@ -55,6 +55,72 @@ for (k in 1981:2010) {
   Intensity_table=merge(WetDay,sum_prcp,by=c("X","Y"),sort=T)
   Intensity_table$intensity=Intensity_table$prcp/Intensity_table$Numbers
   
-  dd=rbind(dd,NumberDay)
+  Intensity_table$intensity[is.na(Intensity_table$intensity)]=0
+  Intensity_table$INT=ifelse(Intensity_table$intensity==Inf,0,Intensity_table$intensity)
   
+  dd=rbind(dd,Intensity_table)
+}
+
+data=dd%>%
+  group_by(X,Y)%>%
+  summarise(Mean=mean(INT))
+
+
+
+
+
+Data_F=data
+
+Raster_file<-rasterFromXYZ(Data_F[c("X","Y","Mean")])
+
+Raster_file_1=disaggregate(Raster_file,8,method='bilinear')
+
+rr = raster::mask(Raster_file_1 ,Africa)
+
+Data_F <- as.data.frame(rasterToPoints(rr ))
+#rio::export(Data,"Data/Annual_Total_Mean_1983_2021_CHIRPS.csv")
+mybreaks <- c(0,5,10,20,30,40,Inf)
+
+#Function to return the desired number of colors
+
+mycolors<- function(x) {
+  colors<-colorRampPalette(c("#89522a","#8cb02c","darkviolet","#37fdf8","#2ccac6","blue"))(6)
+  colors[1:x]
+}
+
+#Function to create labels for legend
+
+breaklabel <- function(x){
+  labels<- as.character(c("[0,5[","[5-10[","[10-15[","[15-20[","[20-25[",'[25,inf['))
+  labels[1:x]
+}
+################################################################################
+
+#Title<-paste("Number of dry spell overs 10 days", "\nRef: 1981-2010","\nData Source: ",Data_Source,"\n Season:",season,sep="")
+Title<-toupper(paste("Precipitation intensity from  ",season,"\nRef: 1981-2010","\nData Source: ",Data_Source,sep=""))
+
+#Im<-grid::rasterGrob(png::readPNG("Logos/Acmad_logo_1.png"), interpolate = TRUE)
+
+l<-ggplot()+geom_contour_filled(data=Data_F, aes(x,y,z =Mean),breaks= mybreaks, show.legend = TRUE) +
+  scale_fill_manual(palette=mycolors, values=breaklabel(6), name="", drop=FALSE, guide = guide_legend(reverse = T))+theme_bw()
+
+last<-l+geom_polygon(data = Africa, aes(x = long,y = lat, group = group), fill = NA,color = "black",size = 1.1)+ theme(legend.position = c(.04, .04),legend.justification = c("left", "bottom"),legend.box.just = "right",legend.margin = margin(6, 6, 6, 6),legend.text = element_text(size=20),plot.title = element_text(hjust = 0.5,size=25,face = "bold"),axis.text.x = element_text(size=15,face = "bold"),axis.text.y = element_text(size=15,face = "bold"))
+
+#last<-last+  annotation_custom(Im, xmin = MaxLon-5, xmax = MaxLon, ymin =MaxLat-5, ymax = MaxLat) +coord_cartesian(clip = "off")
+
+last<-last+metR::scale_x_longitude(limits = c(MinLon,MaxLon),breaks =seq(MinLon,MaxLon,5))+scale_y_latitude(limits = c(MinLat,MaxLat),breaks =seq(MinLat,MaxLat,5))
+
+last<-last+labs(title = Title,x="",y="")
+dir.create(paste("Products/Precipitation_intensity/",sep=""),recursive = T,showWarnings = F)
+
+jpeg(filename = paste("Products/Precipitation_intensity/",season,".jpeg",sep=""),
+     width = 14,
+     height =14,
+     units = "in",
+     res=300)
+print(last)
+dev.off()
+
+
+
 }
