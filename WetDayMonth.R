@@ -16,7 +16,7 @@ MinLon=-25
 MaxLon=55
 MinLat=-40
 MaxLat=40
-cpt=1
+cpt=3
 
 
 for (cpt in 1:12) {
@@ -31,39 +31,47 @@ for (cpt in 1:12) {
   A=c("Jan", "Feb", "Mar", "Apr", "May", "Jun" ,"Jul", "Aug", "Sep" ,"Oct", "Nov", "Dec")
   
   month_stady=paste(A[cpt],sep = "")
+  season=paste(substr(A[cpt],1,1),substr(A[cpt1],1,1),substr(A[cpt2],1,1),sep = "")
+  # dd=data.frame()
   
-  dd=data.frame()
+  # k=2000
   
-  k=2000
+  # for (k in 1981:2010) {
+  #   print(k);
+  #   print(month_stady)
+  #   
+  #   Data<-rio::import(paste("Data/CPC-UNIFIED/CSV_Format/",k,".csv",sep=""))
+  #   Data$Month=format(Data$T,"%b")
+  #   Data$rain[is.na(Data$rain)]=0
+  #   Data= filter(Data,Month %in% A[cpt])
+  #   
+  #   Data$count=ifelse(Data$rain<2.5,0,1)
+  #   
+  #   NumberDay=Data%>%
+  #     group_by(X,Y)%>%
+  #     summarise(Numbers=sum(count))
+  #   
+  #   dd=rbind(dd,NumberDay)
+  #   
+  # }
+  # 
+  # MeanNumberDay=dd%>%
+  #   group_by(X,Y)%>%
+  #   summarise(Number=mean(Numbers))
+  # 
+  # dir.create(paste("Data/CPC-UNIFIED/Number_RainDays/Month2_5/",sep = ""),recursive = T,showWarnings = F)
+  # rio::export(MeanNumberDay,paste("Data/CPC-UNIFIED/Number_RainDays/Month2_5/",month_stady,".csv"))
+  # 
   
-  for (k in 1981:2010) {
-    print(k);
-    print(month_stady)
-    
-    Data<-rio::import(paste("Data/CPC-UNIFIED/CSV_Format/",k,".csv",sep=""))
-    Data$Month=format(Data$T,"%b")
-    Data$rain[is.na(Data$rain)]=0
-    Data= filter(Data,Month %in% A[cpt])
-    
-    Data$count=ifelse(Data$rain<2.5,0,1)
-    
-    NumberDay=Data%>%
-      group_by(X,Y)%>%
-      summarise(Numbers=sum(count))
-    
-    dd=rbind(dd,NumberDay)
-    
-  }
+  MeanNumberDay=rio::import(paste("Data/CPC-UNIFIED/Number_RainDays/Month2_5/",month_stady,".csv"))
+  Data=MeanNumberDay
   
-  MeanNumberDay=dd%>%
-    group_by(X,Y)%>%
-    summarise(Number=mean(Numbers))
+  Mask=rio::import(paste("Data/CPC-UNIFIED/Mask/mask_ ",season," .csv",sep = ""))
+  Mask=subset(Mask, select = -c(Mean) )
   
-  dir.create(paste("Data/CPC-UNIFIED/Number_RainDays/Month2_5/",sep = ""),recursive = T,showWarnings = F)
-  rio::export(MeanNumberDay,paste("Data/CPC-UNIFIED/Number_RainDays/Month2_5/",month_stady,".csv"))
+  Data_=merge(Data,Mask,by=c('X','Y'))
   
-  
-  Data_F=MeanNumberDay
+  Data_F=filter(Data_,mask==1)
   
   Raster_file<-rasterFromXYZ(Data_F[c("X","Y","Number")])
   

@@ -21,6 +21,10 @@ MaxLat=40
 
 
   cpt=5
+  k=2022
+  for (cpt in 1:5) {
+    
+
 
   
   A=c("Jan", "Feb", "Mar", "Apr", "May", "Jun" ,"Jul", "Aug", "Sep" ,"Oct", "Nov", "Dec")
@@ -29,7 +33,7 @@ MaxLat=40
   
   dd=data.frame()
   
-  k=2022
+  
   
     
   Data<-rio::import(paste("Data/CPC-UNIFIED/CSV_Format/",k,".csv",sep=""))
@@ -59,19 +63,19 @@ MaxLat=40
   
   Data_F <- as.data.frame(rasterToPoints(rr ))
   #rio::export(Data,"Data/Annual_Total_Mean_1983_2021_CHIRPS.csv")
-  mybreaks <- c(-14,-7,0,5,7,14,Inf)
+  mybreaks <- c(-13,-8,-4,0,4,8,12,Inf)
   
   #Function to return the desired number of colors
   
   mycolors<- function(x) {
-    colors<-colorRampPalette(c("#89522a","darkviolet","#8cb02c","#37fdf8","#2ccac6","blue"))(6)
+    colors<-colorRampPalette(c("#FF0000" ,"#FFDB00", "darkviolet", "#00FF92", "#0092FF", "#4900FF" ,"#FF00DB"))(7)
     colors[1:x]
   }
   
   #Function to create labels for legend
   
   breaklabel <- function(x){
-    labels<- as.character(c("[-14,-7[","[-7,-0[","[0,5[","[5,7[","[7,14[",'[14,inf['))
+    labels<- as.character(c("[-14,-8[","[-8,-4[","[-4,0[","[0,4[","[4,8[","[8,12[","[12,Inf["))
     labels[1:x]
   }
   ################################################################################
@@ -82,7 +86,7 @@ MaxLat=40
   #Im<-grid::rasterGrob(png::readPNG("Logos/Acmad_logo_1.png"), interpolate = TRUE)
   
   l<-ggplot()+geom_contour_filled(data=Data_F, aes(x,y,z =anomaly),breaks= mybreaks, show.legend = TRUE) +
-    scale_fill_manual(palette=mycolors, values=breaklabel(6), name="", drop=FALSE, guide = guide_legend(reverse = T))+theme_bw()
+    scale_fill_manual(palette=mycolors, values=breaklabel(7), name="", drop=FALSE, guide = guide_legend(reverse = T))+theme_bw()
   
   last<-l+geom_polygon(data = Africa, aes(x = long,y = lat, group = group), fill = NA,color = "black",size = 1.1)+ theme(legend.position = c(.04, .04),legend.justification = c("left", "bottom"),legend.box.just = "right",legend.margin = margin(6, 6, 6, 6),legend.text = element_text(size=20),plot.title = element_text(hjust = 0.5,size=25,face = "bold"),axis.text.x = element_text(size=15,face = "bold"),axis.text.y = element_text(size=15,face = "bold"))
   
@@ -101,4 +105,4 @@ MaxLat=40
   print(last)
   dev.off()
 
-
+  }

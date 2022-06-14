@@ -28,13 +28,13 @@ for (k in 1981:2010) {
   print(season)
   
   Data<-rio::import(paste("Data/CPC-UNIFIED/CSV_Format/",k,".csv",sep=""))
-  Data$Year<-format(Data$T,"%Y")
+  #Data$Year<-format(Data$T,"%Y")
   Data$Month=(format(Data$T,"%b"))
   Data$rain[is.na(Data$rain)]=0
   Data= filter(Data,Month %in% A[c(cpt,cpt1,cpt2)])
   
   Sum=Data%>%
-    group_by(X,Y,Year)%>%
+    group_by(X,Y)%>%
     summarise(prcp=sum(rain))
   
   dd=rbind(dd,Sum)
@@ -44,7 +44,7 @@ Annual_Total<-dd%>%
   group_by(X,Y)%>%
   summarise(Mean=mean(prcp,na.rm=T))
 
-Annual_Total$mask=ifelse(Annual_Total$Mean>100,1,0)
+Annual_Total$mask=ifelse(Annual_Total$Mean>=100,1,0)
 
 dir.create(paste("Data/CPC-UNIFIED/Mask/",sep = ""),recursive = T,showWarnings = F)
 rio::export(Annual_Total, paste("Data/CPC-UNIFIED/Mask/mask_",season,".csv"))

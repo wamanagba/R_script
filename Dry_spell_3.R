@@ -67,9 +67,9 @@ for (i in 2:n) {
    # Le nombre desequences seche superieur a 10 jours
    S10=sum(CDD$Count)
    
-   # Le nombre moyen de jour de sequence seche
-   NbMoyen=filter(CDD,spell!=0)
-   mean_speel=mean(NbMoyen$spell)
+   # # Le nombre moyen de jour de sequence seche
+    NbMoyen=filter(CDD,spell!=0)
+    mean_speel=mean(NbMoyen$spell)
    return(mean_speel)
 }
 
