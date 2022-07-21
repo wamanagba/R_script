@@ -26,20 +26,23 @@ Africa<-readOGR("SHP_AFRIQUE/Afrique_frontier_news.shp")
 
 # Month="Mar"
 # Month_name="March"
-# Year=2022
-
-Month=format(mondate(Sys.Date())-1, "%b")
-Month_name=format(mondate(Sys.Date())-1, "%B")
-Year=format(mondate(Sys.Date())-1, "%Y")
+#Year=2022
+Stat_day=15
+End_day=5
+Stat_Month="Jun"
+End_Month="Jun"
+End_Year=2022
+Year=2022
+Name=paste(Stat_day,Stat_Month,"_",End_day,End_Month,"_",Year,sep = "")
 #Monthly Cumulative
 
+#download.file(paste("https://iridl.ldeo.columbia.edu/SOURCES/.NOAA/.NCEP/.CPC/.FEWS/.Africa/.DAILY/.ARC2/.daily/.est_prcp/T/%28",Stat_day,"%20",Stat_Month,"%20",End_Year,"%29%28",End_day,"%20",End_Month,"%20",Year,"%29RANGEEDGES/data.nc",sep=""),mode="wb",paste("Data/Drought_Monitoring/weekly_",Name,"_",Year,".nc",sep=""))
+download.file(paste("https://iridl.ldeo.columbia.edu/SOURCES/.NOAA/.NCEP/.CPC/.UNIFIED_PRCP/.GAUGE_BASED/.GLOBAL/.v1p0/.extREALTIME/.rain/X/%2820W%29%2855E%29RANGEEDGES/T/%280000%20",Stat_day,"%20",Stat_Month,"%20",End_Year,"%29%280000%20",End_day,"%20",End_Month,"%20",Year,"%29RANGEEDGES/Y/%2840S%29%2840N%29RANGEEDGES/data.nc",sep=""),mode="wb",paste("Data/Drought_Monitoring/weekly_",Name,"_",Year,".nc",sep=""))
 
-download.file(paste("https://iridl.ldeo.columbia.edu/SOURCES/.NOAA/.NCEP/.CPC/.CAMS_OPI/.v0208/.mean/.prcp/T/(",Month,"%20",Year,")/(",Month,"%20",Year,")/RANGEEDGES/Y/-40/0.5/40/GRID/X/-25/0.5/55/GRID/%5BT%5D/average/31/mul/data.nc",sep=""),mode="wb",paste("Data/Drought_Monitoring/Cumulative_",Month_name,"_",Year,".nc",sep=""))
-
-Data_Cum<-raster::raster(x = paste("Data/Drought_Monitoring/Cumulative_",Month_name,"_",Year,".nc",sep=""))
+Data_Cum<-raster::raster(x = paste("Data/Drought_Monitoring/weekly_",Name,"_",Year,".nc",sep=""))
 
 
-Data_interpolted_Cum<-raster::disaggregate(Data_Cum,5,method="bilinear")
+Data_interpolted_Cum<-raster::disaggregate(Data_Cum,8,method="bilinear")
 
 Data_Masked_Cum<-raster::mask(Data_interpolted_Cum,Africa)
 
@@ -47,17 +50,19 @@ Data_df_Cum<- as.data.frame(rasterToPoints(Data_Masked_Cum))
 
 names(Data_df_Cum)[3]="Precipitation"
 
-#Monthly Climatology
-#http://iridl.ldeo.columbia.edu/SOURCES/.NOAA/.NCEP/.CPC/.CAMS_OPI/.v0208/.mean/.prcp/T/(Jun%201981)/(Jun%202010)/RANGEEDGES/Y/-40/0.5/40/GRID/X/25/0.5/55/GRID/T/12/STEP/%5BT%5Daverage/31/mul/data.nc
+# #Monthly Climatology
+# #http://iridl.ldeo.columbia.edu/SOURCES/.NOAA/.NCEP/.CPC/.CAMS_OPI/.v0208/.mean/.prcp/T/(Jun%201981)/(Jun%202010)/RANGEEDGES/Y/-40/0.5/40/GRID/X/25/0.5/55/GRID/T/12/STEP/%5BT%5Daverage/31/mul/data.nc
+# 
+# download.file(paste("https://iridl.ldeo.columbia.edu/SOURCES/.NOAA/.NCEP/.CPC/.CAMS_OPI/.v0208/.mean/.prcp/T/(",Month,"%201981)/(",Month,"%202010)/RANGEEDGES/Y/-40/0.5/40/GRID/X/-25/0.5/55/GRID/T/12/STEP/%5BT%5Daverage/31/mul/data.nc",sep=""),mode="wb", paste("Data/Drought_Monitoring/Climatology_",Month_name,"_",Year,".nc",sep=""))
 
-download.file(paste("https://iridl.ldeo.columbia.edu/SOURCES/.NOAA/.NCEP/.CPC/.CAMS_OPI/.v0208/.mean/.prcp/T/(",Month,"%201981)/(",Month,"%202010)/RANGEEDGES/Y/-40/0.5/40/GRID/X/-25/0.5/55/GRID/T/12/STEP/%5BT%5Daverage/31/mul/data.nc",sep=""),mode="wb", paste("Data/Drought_Monitoring/Climatology_",Month_name,"_",Year,".nc",sep=""))
+Data_Clim=rio::import("Products/Drought_Monitoring/Data/climatologyJun_Jul.csv")
+#Data_Clim<-raster::raster(x=paste("Data/Drought_Monitoring/Climatology_",Month_name,"_",Year,".nc",sep=""))
+DD=filter(Data_Clim,Data_Clim$Month== Stat_Month | Data_Clim$Month==End_Month)
+DD=filter(DD,DD$Day<=15,DD$Day>=5)
+Data_Clim=DD
+Raster_file<-rasterFromXYZ(Data_Clim[c("X","Y","Cum2")])
 
-
-Data_Clim<-raster::raster(x=paste("Data/Drought_Monitoring/Climatology_",Month_name,"_",Year,".nc",sep=""))
-
-
-
-Data_interpolted_Clim<-raster::disaggregate(Data_Clim,5,method="bilinear")
+Data_interpolted_Clim<-raster::disaggregate(Raster_file,8,method="bilinear")
 
 Data_Masked_Clim<-raster::mask(Data_interpolted_Clim,Africa)
 
@@ -67,9 +72,9 @@ names(Data_df_Clim)[3]="Climatology"
 
 Percentage<-merge(Data_df_Cum,Data_df_Clim,by=c("x","y"))
 
-Percentage$RR<-ifelse(Percentage$Climatology<=31,100,(Percentage$Precipitation/Percentage$Climatology)*100)
+Percentage$RR<-ifelse(Percentage$Climatology<=10,100,(Percentage$Precipitation/Percentage$Climatology)*100)
 
-rio::export(Percentage[,c("x","y","RR")],paste("Products/Drought_Monitoring/Data/Percentage_",Month_name,Year,".csv",sep=""))
+rio::export(Percentage[,c("x","y","RR")],paste("Products/Drought_Monitoring/Data/Percentage_",Name,".csv",sep=""))
 
 
 
@@ -90,7 +95,7 @@ breaklabel <- function(x){
   labels[1:x]
 }
 
-Title = paste("MONTHLY PRECIPITATION IN PERCENT OF AVERAGE FOR ",toupper(Month_name)," ", Year,"\n Data source: CAMS-OPI",sep="")
+Title = paste("MONTHLY PRECIPITATION IN PERCENT OF AVERAGE FOR ",toupper(Name)," ", Year,"\n Data source: CAMS-OPI",sep="")
 
 Im<-grid::rasterGrob(png::readPNG("Logos/Acmad_logo_1.png"), interpolate = TRUE)
 
@@ -103,9 +108,9 @@ last<-last+ metR::scale_x_longitude(limits = c(-25, 60),breaks = seq(-25, 60,10)
 last<-last+labs(title = Title,x="",y="")
 
   
-dir.create(paste("Products/Drought_Monitoring/Maps/",Month_name,sep=""),recursive = T,showWarnings = F)
+dir.create(paste("Products/Drought_Monitoring/Maps/",Name,sep=""),recursive = T,showWarnings = F)
 
-jpeg(filename = paste("Products/Drought_Monitoring/Maps/",Month_name,"/Percentage_",Month,"_",Year,".jpeg",sep=""),
+jpeg(filename = paste("Products/Drought_Monitoring/Maps/",Name,"/Percentage_",Name,"_",Year,".jpeg",sep=""),
      width = 11,
      height = 12,
      units = "in",

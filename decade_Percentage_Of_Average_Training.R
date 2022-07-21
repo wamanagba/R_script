@@ -24,8 +24,8 @@ Africa<-readOGR("SHP_AFRIQUE/Afrique_frontier_news.shp")
 
 #Give the month abbr and name
 
-Month="Jun"
-Month_name="June"
+Month="Feb"
+Month_name="February"
 Year=2022
 
 #Monthly Cumulative
