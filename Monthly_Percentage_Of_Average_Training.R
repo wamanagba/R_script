@@ -17,15 +17,15 @@ library(Hmisc)
 options(download.file.extra = '--no-check-certificate')
 rm(list=ls())
 
-setwd("C:/Users/Yacou/Desktop/ACMAD_Git/")
+setwd("E:/ACMAD_Git/")
 dir.create("Results",recursive = T,showWarnings = F)
 
 Africa<-readOGR("SHP_AFRIQUE/Afrique_frontier_news.shp") 
 
 #Give the month abbr and name
 
-Month="Jun"
-Month_name="June"
+Month="Aug"
+Month_name="August"
 Year=2022
 
 #Monthly Cumulative
